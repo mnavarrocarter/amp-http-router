@@ -1,0 +1,26 @@
+{
+  "name": "mnavarrocarter/amp-http-router",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Matias Navarro Carter",
+      "email": "contact@mnavarro.dev"
+    }
+  ],
+  "require": {
+    "php": ">= 7.4",
+    "amphp/http-server": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MNC\\Router\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MNC\\Router\\": "tests"
+    }
+  }
+}
