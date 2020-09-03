@@ -11,7 +11,9 @@
   ],
   "require": {
     "php": ">= 7.4",
-    "amphp/http-server": "^2.0"
+    "ext-pcntl": "*",
+    "amphp/http-server": "^2.0",
+    "mnavarrocarter/path-to-regexp-php": "^1.0"
   },
   "autoload": {
     "psr-4": {

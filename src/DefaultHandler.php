@@ -7,6 +7,7 @@ namespace MNC\Router;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
+use Amp\Http\Status;
 use Amp\Promise;
 use function Amp\call;
 
@@ -24,7 +25,12 @@ class DefaultHandler implements RequestHandler
     public function handleRequest(Request $request): Promise
     {
         return call(static function () use ($request) {
-            return new Response(404, [
+            $status = Status::NOT_FOUND;
+            if (RoutingContext::of($request)->isMethodNotAllowed()) {
+                $status = Status::METHOD_NOT_ALLOWED;
+            }
+
+            return new Response($status, [
                 'content-type' => 'text/plain;charset=utf-8'
             ], sprintf('Cannot %s %s', $request->getMethod(), $request->getUri()->getPath()));
         });

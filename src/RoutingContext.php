@@ -6,6 +6,7 @@ namespace MNC\Router;
 
 use Amp\Http\Server\MissingAttributeError;
 use Amp\Http\Server\Request;
+use MNC\PathToRegExpPHP\MatchResult;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -20,7 +21,7 @@ class RoutingContext
      * @param Request $request
      * @return RoutingContext
      */
-    public static function from(Request $request): RoutingContext
+    public static function of(Request $request): RoutingContext
     {
         try {
             return $request->getAttribute(self::ATTR);
@@ -31,8 +32,10 @@ class RoutingContext
         }
     }
 
-    public UriInterface $uriToMatch;
-    public array $params;
+    private UriInterface $uriToMatch;
+    private ?MatchResult $lastMatchResult;
+    private array $params;
+    private array $allowedMethods;
 
     /**
      * RoutingContext constructor.
@@ -41,7 +44,9 @@ class RoutingContext
     protected function __construct(UriInterface $uriToMatch)
     {
         $this->uriToMatch = $uriToMatch;
+        $this->lastMatchResult = null;
         $this->params = [];
+        $this->allowedMethods = [];
     }
 
     /**
@@ -59,5 +64,74 @@ class RoutingContext
     public function addParam(string $name, string $value): void
     {
         $this->params[$name] = $value;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMethodNotAllowed(): bool
+    {
+        return count($this->allowedMethods) > 0;
+    }
+
+    /**
+     * @return UriInterface
+     */
+    public function getUriToMatch(): UriInterface
+    {
+        return $this->uriToMatch;
+    }
+
+    /**
+     * @return MatchResult|null
+     */
+    public function getLastMatchResult(): ?MatchResult
+    {
+        return $this->lastMatchResult;
+    }
+
+    /**
+     * @param MatchResult $result
+     */
+    public function setLastMatchResult(MatchResult $result): void
+    {
+        $this->lastMatchResult = $result;
+        foreach ($result->getValues() as $key => $value) {
+            $this->addParam($key, $value);
+        }
+    }
+
+    /**
+     * @param string ...$methods
+     */
+    public function addAllowedMethods(string ...$methods): void
+    {
+        $this->allowedMethods = array_merge($this->allowedMethods, $methods);
+    }
+
+    /**
+     * @return array
+     */
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
+    /**
+     * @param string $key
+     * @return string|null
+     */
+    public function getParam(string $key): ?string
+    {
+        return $this->params[$key] ?? null;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     */
+    public function saveParam(string $key, string $value): void
+    {
+        $this->params[$key] = $value;
     }
 }

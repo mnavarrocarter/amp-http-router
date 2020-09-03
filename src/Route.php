@@ -55,7 +55,7 @@ class Route extends Path
         return call(function () use ($request, $next) {
             // If method does not match but the path does, then we save a method not allowed attr in the request
             if (!$this->methodMatches($request->getMethod())) {
-                Routing::saveAllowedMethodsTo($request, $this->methods);
+                RoutingContext::of($request)->addAllowedMethods(...$this->methods);
                 return yield $next->handleRequest($request);
             }
 

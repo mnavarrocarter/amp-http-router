@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace MNC\Router;
 
+use Amp\Http\Server\HttpServer;
 use Amp\Http\Server\Middleware;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
+use Amp\Http\Server\ServerObserver;
 use Amp\Promise;
 use function Amp\call;
 
@@ -14,7 +16,7 @@ use function Amp\call;
  * Class Router
  * @package MNC\Router
  */
-class Router implements RequestHandler
+class Router implements RequestHandler, ServerObserver
 {
     /**
      * @var RequestHandler
@@ -140,9 +142,19 @@ class Router implements RequestHandler
     public function handleRequest(Request $request): Promise
     {
         return call(function () use ($request) {
-            RoutingContext::from($request);
+            RoutingContext::of($request);
             $handler = Middleware\stack($this->handler, ...$this->middleware);
             return yield $handler->handleRequest($request);
         });
+    }
+
+    public function onStart(HttpServer $server): Promise
+    {
+        // TODO: Implement onStart() method.
+    }
+
+    public function onStop(HttpServer $server): Promise
+    {
+        // TODO: Implement onStop() method.
     }
 }

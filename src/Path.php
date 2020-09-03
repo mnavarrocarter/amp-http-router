@@ -6,7 +6,6 @@ namespace MNC\Router;
 use Amp\Http\Server\Middleware;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
-use Amp\Http\Server\RequestHandler as Next;
 use Amp\Http\Server\Response;
 use Amp\Promise;
 use MNC\PathToRegExpPHP\NoMatchException;
@@ -25,7 +24,7 @@ class Path implements Middleware
 
     /**
      * @param string $path
-     * @param Next $handler
+     * @param RequestHandler $handler
      * @return Path
      */
     public static function fromString(string $path, RequestHandler $handler): Path
@@ -37,7 +36,7 @@ class Path implements Middleware
      * Route constructor.
      *
      * @param PathRegExp $path
-     * @param Next $handler
+     * @param RequestHandler $handler
      */
     public function __construct(PathRegExp $path, RequestHandler $handler)
     {
@@ -47,15 +46,15 @@ class Path implements Middleware
 
     /**
      * @param Request $request
-     * @param Next $next
+     * @param RequestHandler $next
      *
      * @return Promise
      */
-    public function handleRequest(Request $request, Next $next): Promise
+    public function handleRequest(Request $request, RequestHandler $next): Promise
     {
         return call(function () use ($request, $next) {
             // We get the routing uri to match
-            $uri = Routing::getUriToMatchFrom($request);
+            $uri = RoutingContext::of($request)->getUriToMatch();
 
             // We fix the trailing slash if missing
             if (substr($uri->getPath(), -1) !== '/') {
@@ -80,8 +79,8 @@ class Path implements Middleware
 
             // If it matches, we create a new path in the request
             $newPath = str_replace($result->getMatchedString(), '', $uri->getPath());
-            Routing::saveUriToMatchTo($request, $uri->withPath($newPath));
-            Routing::saveMatchResultTo($request, $result);
+            RoutingContext::of($request)->setUriToMatch($uri->withPath($newPath));
+            RoutingContext::of($request)->setLastMatchResult($result);
 
             return yield $this->handler->handleRequest($request);
         });
@@ -89,10 +88,10 @@ class Path implements Middleware
 
     /**
      * @param Request $request
-     * @param Next $next
+     * @param RequestHandler $next
      * @return Promise
      */
-    protected function postMatchingHook(Request $request, Next $next): Promise
+    protected function postMatchingHook(Request $request, RequestHandler $next): Promise
     {
         return call(static function () {
             return null;
