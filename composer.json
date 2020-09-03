@@ -1,6 +1,6 @@
 {
   "name": "mnavarrocarter/amp-http-router",
-  "description": "description",
+  "description": "Composable middleware-based routing engine for amp application in PHP",
   "minimum-stability": "stable",
   "license": "proprietary",
   "authors": [
@@ -12,17 +12,21 @@
   "require": {
     "php": ">= 7.4",
     "ext-pcntl": "*",
+    "ext-json": "*",
     "amphp/http-server": "^2.0",
     "mnavarrocarter/path-to-regexp-php": "^1.0"
   },
   "autoload": {
     "psr-4": {
-      "MNC\\Router\\": "src"
-    }
+      "MNC\\Router\\": ["src/router"]
+    },
+    "files": [
+      "src/functions.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
-      "MNC\\Router\\": "tests"
+      "MNC\\Router\\": ["tests/router"]
     }
   }
 }

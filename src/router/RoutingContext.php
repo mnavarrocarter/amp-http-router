@@ -15,7 +15,7 @@ use Psr\Http\Message\UriInterface;
  */
 class RoutingContext
 {
-    private const ATTR = 'routing.context';
+    private const ATTR = __CLASS__;
 
     /**
      * @param Request $request

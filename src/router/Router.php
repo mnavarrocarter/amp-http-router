@@ -10,7 +10,6 @@ use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\ServerObserver;
 use Amp\Promise;
-use function Amp\call;
 
 /**
  * Class Router
@@ -26,6 +25,15 @@ class Router implements RequestHandler, ServerObserver
      * @var array|Middleware[]
      */
     private array $middleware;
+
+    /**
+     * @param RequestHandler|null $handler
+     * @return static
+     */
+    public static function create(RequestHandler $handler = null): self
+    {
+        return new self($handler);
+    }
 
     /**
      * Router constructor.
@@ -141,20 +149,34 @@ class Router implements RequestHandler, ServerObserver
      */
     public function handleRequest(Request $request): Promise
     {
-        return call(function () use ($request) {
-            RoutingContext::of($request);
-            $handler = Middleware\stack($this->handler, ...$this->middleware);
-            return yield $handler->handleRequest($request);
-        });
+        RoutingContext::of($request);
+        $handler = Middleware\stack($this->handler, ...$this->middleware);
+        return $handler->handleRequest($request);
     }
 
+    /** @inheritdoc */
     public function onStart(HttpServer $server): Promise
     {
-        // TODO: Implement onStart() method.
+        $promises = [];
+        foreach ($this->middleware as $middleware) {
+            if ($middleware instanceof ServerObserver) {
+                $promises[] = $middleware->onStart($server);
+            }
+        }
+
+        return Promise\all($promises);
     }
 
+    /** @inheritdoc */
     public function onStop(HttpServer $server): Promise
     {
-        // TODO: Implement onStop() method.
+        $promises = [];
+        foreach ($this->middleware as $middleware) {
+            if ($middleware instanceof ServerObserver) {
+                $promises[] = $middleware->onStop($server);
+            }
+        }
+
+        return Promise\all($promises);
     }
 }

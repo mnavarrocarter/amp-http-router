@@ -5,10 +5,11 @@ namespace MNC\Router;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
+use Amp\Http\Server\Response;
 use Amp\Promise;
+use Amp\Success;
 use MNC\PathToRegExpPHP\PathRegExp;
 use MNC\PathToRegExpPHP\PathRegExpFactory;
-use function Amp\call;
 
 /**
  * Class Route
@@ -48,19 +49,16 @@ class Route extends Path
     /**
      * @param Request $request
      * @param RequestHandler $next
-     * @return Promise
+     * @return Promise<Response|null>
      */
     protected function postMatchingHook(Request $request, RequestHandler $next): Promise
     {
-        return call(function () use ($request, $next) {
-            // If method does not match but the path does, then we save a method not allowed attr in the request
-            if (!$this->methodMatches($request->getMethod())) {
-                RoutingContext::of($request)->addAllowedMethods(...$this->methods);
-                return yield $next->handleRequest($request);
-            }
-
-            return null;
-        });
+        // If method does not match but the path does, then we save a method not allowed attr in the request
+        if (!$this->methodMatches($request->getMethod())) {
+            RoutingContext::of($request)->addAllowedMethods(...$this->methods);
+            return $next->handleRequest($request);
+        }
+        return new Success();
     }
 
     /**
